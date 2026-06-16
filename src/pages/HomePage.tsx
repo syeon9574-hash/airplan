@@ -5,9 +5,8 @@ import { useAirData } from '../hooks/useAirData';
 import GreetingBar from '../components/home/GreetingBar';
 import AqiCard from '../components/home/AqiCard';
 import PmDetailRow from '../components/home/PmDetailRow';
-import ActionList from '../components/home/ActionList';
 import ForecastChart from '../components/home/ForecastChart';
-import SmartTimelineGuide from '../components/home/SmartTimelineGuide';
+import SmartActionGuide from '../components/home/SmartActionGuide';
 import SchedulePreview from '../components/home/SchedulePreview';
 import WeeklyInsight from '../components/home/WeeklyInsight';
 
@@ -39,9 +38,8 @@ export default function HomePage() {
         sensitivity={settings.sensitivity}
       />
       <PmDetailRow pm25={appState.pm25} pm10={appState.pm10} />
-      <ActionList pm25={appState.pm25} sensitivity={settings.sensitivity} />
       <ForecastChart />
-      <SmartTimelineGuide />
+      <SmartActionGuide />
       <WeeklyInsight />
       <SchedulePreview schedules={schedules} sensitivity={settings.sensitivity} />
     </View>

@@ -193,3 +193,32 @@ export function getPersonalizedRecommendations(pm25: number, sensitivity: string
 
   return rec;
 }
+
+// ── GPS 기반 위치 변환 ─────────────────────────
+export const SIDO_COORDS = [
+  { name: '서울 강남구', lat: 37.5665, lng: 126.9780 },
+  { name: '경기 수원', lat: 37.2636, lng: 127.0286 },
+  { name: '인천 부평', lat: 37.4563, lng: 126.7052 },
+  { name: '부산 해운대', lat: 35.1796, lng: 129.0756 },
+  { name: '대구 중구', lat: 35.8714, lng: 128.6014 },
+  { name: '울산 남구', lat: 35.5384, lng: 129.3114 },
+  { name: '대전 유성', lat: 36.3504, lng: 127.3845 },
+  { name: '광주 동구', lat: 35.1595, lng: 126.8526 },
+  { name: '세종 세종', lat: 36.4800, lng: 127.2890 },
+  { name: '충남 천안', lat: 36.6588, lng: 126.6728 },
+  { name: '전북 전주', lat: 35.8242, lng: 127.1480 },
+  { name: '제주 제주시', lat: 33.4996, lng: 126.5312 },
+];
+
+export function findClosestLocation(lat: number, lng: number): string {
+  let minDistance = Infinity;
+  let closest = SIDO_COORDS[0].name;
+  for (const item of SIDO_COORDS) {
+    const d = Math.pow(item.lat - lat, 2) + Math.pow(item.lng - lng, 2);
+    if (d < minDistance) {
+      minDistance = d;
+      closest = item.name;
+    }
+  }
+  return closest;
+}

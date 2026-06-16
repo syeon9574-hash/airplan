@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { MapPin, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MapPin, X, ChevronLeft, ChevronRight, Navigation } from 'lucide-react';
+import { findClosestLocation } from '../../utils/airQuality';
 
 interface LocationSelectModalProps {
   isOpen: boolean;
@@ -38,6 +39,31 @@ export default function LocationSelectModal({ isOpen, onClose, onSelect, current
     }
   }, [isOpen, currentLocation]);
 
+  const [isLocating, setIsLocating] = useState(false);
+
+  const handleGpsLocate = () => {
+    if (!navigator.geolocation) {
+      alert('GPS 기능을 지원하지 않는 브라우저입니다.');
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const closest = findClosestLocation(latitude, longitude);
+        onSelect(closest);
+        setIsLocating(false);
+        onClose();
+      },
+      (error) => {
+        console.warn(error);
+        alert('현재 위치 정보를 가져올 수 없습니다. 권한을 확인해주세요.');
+        setIsLocating(false);
+      },
+      { timeout: 8000 }
+    );
+  };
+
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) onClose();
   };
@@ -63,6 +89,11 @@ export default function LocationSelectModal({ isOpen, onClose, onSelect, current
           </CloseBtn>
         </DialogHeader>
         <Description>실시간 미세먼지 정보를 조회할 시도와 세부 지역을 선택하세요.</Description>
+
+        <GpsButton onClick={handleGpsLocate} disabled={isLocating}>
+          <Navigation size={13} style={{ marginRight: 6 }} />
+          {isLocating ? '현재 위치 측정 중...' : '현재 GPS 위치로 자동 설정'}
+        </GpsButton>
 
         {/* 시도 탭 — 좌우 화살표 버튼 */}
         <SidoRow>
@@ -327,4 +358,36 @@ const SelectedDot = styled.span`
   border-radius: 50%;
   background: #8B7EF8;
   margin: 0 auto 4px;
+`;
+
+const GpsButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px;
+  background: rgba(123, 110, 232, 0.08);
+  border: 1.5px dashed var(--primary);
+  border-radius: 14px;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 4px;
+  margin-bottom: 16px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    background: rgba(123, 110, 232, 0.12);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 `;

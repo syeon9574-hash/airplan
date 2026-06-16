@@ -39,6 +39,7 @@ export interface Schedule {
   name: string;
   startTime: string;
   endTime: string;
+  day?: 'today' | 'tomorrow';
 }
 
 // ── 활동 유형 ────────────────────────────────

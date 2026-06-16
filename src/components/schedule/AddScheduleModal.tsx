@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { 
   Footprints, 
@@ -19,7 +19,8 @@ import { getPersonalizedGrade, getPersonalizedGradeBadgeStyle } from '../../util
 interface AddScheduleModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (type: string, startTime: string, endTime: string) => void;
+  onSave: (type: string, startTime: string, endTime: string, day: 'today' | 'tomorrow') => void;
+  defaultDay?: 'today' | 'tomorrow';
 }
 
 function getActivityIcon(key: string, isSelected: boolean) {
@@ -34,14 +35,22 @@ function getActivityIcon(key: string, isSelected: boolean) {
   }
 }
 
-export default function AddScheduleModal({ isOpen, onClose, onSave }: AddScheduleModalProps) {
+export default function AddScheduleModal({ isOpen, onClose, onSave, defaultDay }: AddScheduleModalProps) {
   const { settings } = useAppContext();
   const [selectedType, setSelectedType] = useState('walk');
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('10:00');
+  const [day, setDay] = useState<'today' | 'tomorrow'>('today');
+
+  // 모달이 열릴 때 기본 선택 탭으로 동기화
+  useEffect(() => {
+    if (isOpen) {
+      setDay(defaultDay || 'today');
+    }
+  }, [isOpen, defaultDay]);
 
   const handleSave = () => {
-    onSave(selectedType, startTime, endTime);
+    onSave(selectedType, startTime, endTime, day);
     onClose();
   };
 
@@ -58,7 +67,7 @@ export default function AddScheduleModal({ isOpen, onClose, onSave }: AddSchedul
     const endMin = String(endNow.getMinutes()).padStart(2, '0');
     const endTimeStr = `${endHour}:${endMin}`;
 
-    onSave('walk', targetTime, endTimeStr);
+    onSave('walk', targetTime, endTimeStr, day);
     onClose();
   };
 
@@ -117,6 +126,12 @@ export default function AddScheduleModal({ isOpen, onClose, onSave }: AddSchedul
       <Sheet $open={isOpen}>
         <Handle />
         <ModalTitle>새 일정 추가</ModalTitle>
+
+        <SubLabel>날짜 선택</SubLabel>
+        <DaySegmentRow>
+          <DaySegmentBtn type="button" $active={day === 'today'} onClick={() => setDay('today')}>오늘</DaySegmentBtn>
+          <DaySegmentBtn type="button" $active={day === 'tomorrow'} onClick={() => setDay('tomorrow')}>내일</DaySegmentBtn>
+        </DaySegmentRow>
 
         <SubLabel>활동 유형 선택</SubLabel>
         <TypeGrid>
@@ -399,4 +414,26 @@ const TestAlarmBtn = styled.button`
     transform: scale(0.97);
     background: rgba(139, 126, 248, 0.20);
   }
+`;
+
+const DaySegmentRow = styled.div`
+  display: flex;
+  background: #EDE8FB;
+  padding: 4px;
+  border-radius: 14px;
+  margin-bottom: 20px;
+`;
+
+const DaySegmentBtn = styled.button<{ $active: boolean }>`
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  background: ${({ $active }) => $active ? 'white' : 'transparent'};
+  color: ${({ $active }) => $active ? '#7B6EE8' : 'var(--text-secondary)'};
+  transition: all 0.2s;
+  box-shadow: ${({ $active }) => $active ? '0 2px 8px rgba(139,126,248,0.15)' : 'none'};
 `;

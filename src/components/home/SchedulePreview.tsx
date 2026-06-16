@@ -30,7 +30,8 @@ function getActivityIcon(key: string) {
 }
 
 export default function SchedulePreview({ schedules, sensitivity }: SchedulePreviewProps) {
-  const preview = schedules.slice(0, 2);
+  const todaySchedules = schedules.filter(s => (s.day || 'today') === 'today');
+  const preview = todaySchedules.slice(0, 2);
 
   return (
     <>

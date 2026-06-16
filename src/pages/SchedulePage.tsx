@@ -14,10 +14,11 @@ export default function SchedulePage() {
   const { schedules, addSchedule, deleteSchedule, appState, isModalOpen, setIsModalOpen, settings } = useAppContext();
   const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
   const [isAlternativeOpen, setIsAlternativeOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'today' | 'tomorrow'>('today');
 
-  const handleSave = (type: string, startTime: string, endTime: string) => {
+  const handleSave = (type: string, startTime: string, endTime: string, day: 'today' | 'tomorrow') => {
     const actType = ACTIVITY_TYPES.find(t => t.key === type) || ACTIVITY_TYPES[0];
-    addSchedule({ type, name: actType.label, startTime, endTime });
+    addSchedule({ type, name: actType.label, startTime, endTime, day });
   };
 
   const grade = getPersonalizedGrade(appState.pm25, settings.sensitivity);
@@ -34,9 +35,19 @@ export default function SchedulePage() {
     return <ShieldAlert size={iconSize} color={grade.color} />;
   };
 
+  const filteredSchedules = schedules.filter(s => {
+    const sDay = s.day || 'today';
+    return sDay === activeTab;
+  });
+
   return (
     <View id="view-schedule">
-      <AppHeader title="일정 관리" subTitle="외출·운동·환기 일정을 등록하세요" />
+      <AppHeader title="일정 관리" subTitle="오늘과 내일의 미세먼지 맞춤 계획" />
+
+      <TabRow>
+        <TabBtn $active={activeTab === 'today'} onClick={() => setActiveTab('today')}>오늘 일정</TabBtn>
+        <TabBtn $active={activeTab === 'tomorrow'} onClick={() => setActiveTab('tomorrow')}>내일 일정</TabBtn>
+      </TabRow>
 
       <AddBtn id="schedule-add-btn" onClick={() => setIsModalOpen(true)} aria-label="일정 추가하기">
         <Plus size={16} strokeWidth={2.5} /> 새 일정 추가하기
@@ -61,10 +72,10 @@ export default function SchedulePage() {
       </AqiBanner>
 
       <SectionTitle>
-        <List size={16} color="#7B6EE8" style={{ marginRight: 6 }} /> 등록된 일정
+        <List size={16} color="#7B6EE8" style={{ marginRight: 6 }} /> 등록된 일정 ({filteredSchedules.length})
       </SectionTitle>
       <ScheduleList
-        schedules={schedules}
+        schedules={filteredSchedules}
         onDelete={deleteSchedule}
         onClickCard={sch => {
           const forecastPm25 = getForecastPm25(sch.startTime);
@@ -82,6 +93,7 @@ export default function SchedulePage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
+        defaultDay={activeTab}
       />
 
       {selectedSchedule && (
@@ -179,4 +191,31 @@ const SectionTitle = styled.div`
   align-items: center;
   gap: 8px;
   letter-spacing: -0.2px;
+`;
+
+const TabRow = styled.div`
+  display: flex;
+  margin: 0 16px 14px;
+  background: var(--surface-border);
+  padding: 4px;
+  border-radius: 16px;
+  border: 1.5px solid var(--surface-border);
+`;
+
+const TabBtn = styled.button<{ $active: boolean }>`
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  background: ${({ $active }) => $active ? 'white' : 'transparent'};
+  color: ${({ $active }) => $active ? '#7B6EE8' : 'var(--text-secondary)'};
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: ${({ $active }) => $active ? '0 4px 12px rgba(123, 110, 232, 0.15)' : 'none'};
+
+  &:active {
+    transform: scale(0.98);
+  }
 `;

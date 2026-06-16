@@ -7,6 +7,7 @@ import AqiCard from '../components/home/AqiCard';
 import PmDetailRow from '../components/home/PmDetailRow';
 import ActionList from '../components/home/ActionList';
 import ForecastChart from '../components/home/ForecastChart';
+import SmartTimelineGuide from '../components/home/SmartTimelineGuide';
 import SchedulePreview from '../components/home/SchedulePreview';
 import WeeklyInsight from '../components/home/WeeklyInsight';
 
@@ -40,6 +41,7 @@ export default function HomePage() {
       <PmDetailRow pm25={appState.pm25} pm10={appState.pm10} />
       <ActionList pm25={appState.pm25} sensitivity={settings.sensitivity} />
       <ForecastChart />
+      <SmartTimelineGuide />
       <WeeklyInsight />
       <SchedulePreview schedules={schedules} sensitivity={settings.sensitivity} />
     </View>

@@ -65,6 +65,7 @@ export interface ForecastItem {
 // ── 설정 ────────────────────────────────────
 export interface Settings {
   location: string;
+  useGps: boolean;
   alertOn: boolean;
   scheduleAlertOn: boolean;
   morningAlertOn: boolean;

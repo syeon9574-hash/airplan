@@ -6,7 +6,7 @@ import { findClosestLocation } from '../../utils/airQuality';
 interface LocationSelectModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelect: (location: string) => void;
+  onSelect: (location: string, useGps?: boolean) => void;
   currentLocation: string;
 }
 
@@ -51,7 +51,7 @@ export default function LocationSelectModal({ isOpen, onClose, onSelect, current
       (position) => {
         const { latitude, longitude } = position.coords;
         const closest = findClosestLocation(latitude, longitude);
-        onSelect(closest);
+        onSelect(closest, true);
         setIsLocating(false);
         onClose();
       },
@@ -130,7 +130,7 @@ export default function LocationSelectModal({ isOpen, onClose, onSelect, current
                 key={district}
                 $selected={isSelected}
                 onClick={() => {
-                  onSelect(selectedSido === '세종' ? '세종' : `${selectedSido} ${district}`);
+                  onSelect(selectedSido === '세종' ? '세종' : `${selectedSido} ${district}`, false);
                   onClose();
                 }}
               >

@@ -5,6 +5,7 @@ import { FALLBACK } from '../constants/regionData';
 // ── 기본 설정값 ─────────────────────────────
 const DEFAULT_SETTINGS: Settings = {
   location: '서울 강남구',
+  useGps: true,
   alertOn: true,
   scheduleAlertOn: true,
   morningAlertOn: false,
@@ -14,7 +15,15 @@ const DEFAULT_SETTINGS: Settings = {
 
 const loadStoredSettings = (): Settings => {
   try {
-    return JSON.parse(localStorage.getItem('airplan_settings') || JSON.stringify(DEFAULT_SETTINGS));
+    const stored = localStorage.getItem('airplan_settings');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed.useGps === undefined) {
+        parsed.useGps = true;
+      }
+      return parsed;
+    }
+    return DEFAULT_SETTINGS;
   } catch {
     return DEFAULT_SETTINGS;
   }

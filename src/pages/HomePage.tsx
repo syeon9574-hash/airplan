@@ -9,12 +9,13 @@ import ForecastChart from '../components/home/ForecastChart';
 import SmartActionGuide from '../components/home/SmartActionGuide';
 import SchedulePreview from '../components/home/SchedulePreview';
 import WeeklyInsight from '../components/home/WeeklyInsight';
-
+import LocationSelectModal from '../components/settings/LocationSelectModal';
 
 export default function HomePage() {
-  const { appState, schedules, settings } = useAppContext();
+  const { appState, schedules, settings, saveSetting } = useAppContext();
   const { fetchAll } = useAirData();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -36,12 +37,23 @@ export default function HomePage() {
         apiOk={appState.apiOk}
         location={settings.location}
         sensitivity={settings.sensitivity}
+        onLocationClick={() => setIsLocationModalOpen(true)}
       />
       <PmDetailRow pm25={appState.pm25} pm10={appState.pm10} />
       <ForecastChart />
       <SmartActionGuide />
       <WeeklyInsight />
       <SchedulePreview schedules={schedules} sensitivity={settings.sensitivity} />
+
+      <LocationSelectModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+        onSelect={(val, useGps = false) => {
+          saveSetting('location', val);
+          saveSetting('useGps', useGps);
+        }}
+        currentLocation={settings.location}
+      />
     </View>
   );
 }

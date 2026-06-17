@@ -21,25 +21,30 @@ function AppInner() {
   // 백그라운드 실시간 알림 스케줄러 구동
   useAlarmScheduler();
 
-  // 앱 최초 진입 시 GPS 기반 위치 자동 설정
+  // GPS 기반 위치 자동 동기화 (useGps가 true일 때 접속 시 실행)
   useEffect(() => {
-    const isFirstTime = !localStorage.getItem('airplan_location_auto_set');
-    if (isFirstTime && navigator.geolocation) {
+    if (settings.useGps && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
           const closest = findClosestLocation(latitude, longitude);
-          saveSetting('location', closest);
+          if (closest !== settings.location) {
+            saveSetting('location', closest);
+          }
           localStorage.setItem('airplan_location_auto_set', 'true');
         },
         (error) => {
-          console.warn('Geolocation failed or denied:', error);
+          console.warn('Geolocation failed or denied on startup:', error);
           localStorage.setItem('airplan_location_auto_set', 'failed');
+          // 권한이 거부된 경우 GPS 자동 업데이트 비활성화
+          if (error.code === error.PERMISSION_DENIED) {
+            saveSetting('useGps', false);
+          }
         },
         { timeout: 8000 }
       );
     }
-  }, [saveSetting]);
+  }, [settings.useGps, settings.location, saveSetting]);
 
   useEffect(() => {
     const cleanup = startAutoRefresh();

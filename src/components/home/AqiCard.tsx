@@ -9,9 +9,10 @@ interface AqiCardProps {
   apiOk: boolean;
   location: string;
   sensitivity: string;
+  onLocationClick?: () => void;
 }
 
-export default function AqiCard({ pm25, dataTime, apiOk, location, sensitivity }: AqiCardProps) {
+export default function AqiCard({ pm25, dataTime, apiOk, location, sensitivity, onLocationClick }: AqiCardProps) {
   const grade = getPersonalizedGrade(pm25, sensitivity);
   const numberRef = useRef<HTMLDivElement>(null);
   const prevPm25 = useRef(pm25);
@@ -39,7 +40,7 @@ export default function AqiCard({ pm25, dataTime, apiOk, location, sensitivity }
       <Deco2 />
       <Deco3 />
 
-      <AqiLocation id="aqi-location">
+      <AqiLocation id="aqi-location" onClick={onLocationClick} role="button" aria-label="위치 변경">
         <MapPin size={13} strokeWidth={2.5} style={{ marginRight: 3 }} /> {location}
       </AqiLocation>
       <AqiNumber id="aqi-number" ref={numberRef}>{pm25}</AqiNumber>
@@ -125,9 +126,22 @@ const AqiLocation = styled.div`
   font-weight: 600;
   position: relative;
   z-index: 1;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    opacity: 1;
+    transform: translateY(-1px);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 `;
 
 const AqiNumber = styled.div`

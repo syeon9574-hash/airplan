@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import styled from 'styled-components';
-import { MapPin, Sun, Moon, Info, Database } from 'lucide-react';
+import { MapPin, Sun, Moon, Info, Database, Navigation } from 'lucide-react';
 import { useAppContext } from '../store/appContext';
 import AppHeader from '../components/layout/AppHeader';
 import NotificationSettings from '../components/settings/NotificationSettings';
 import SensitivitySettings from '../components/settings/SensitivitySettings';
 import LocationSelectModal from '../components/settings/LocationSelectModal';
+import { findClosestLocation } from '../utils/airQuality';
 
 export default function SettingsPage() {
   const { settings, saveSetting } = useAppContext();
@@ -22,7 +23,10 @@ export default function SettingsPage() {
         </ProfileAvatar>
         <ProfileInfo>
           <ProfileTitle>내 위치</ProfileTitle>
-          <ProfileLocation id="setting-location">{settings.location}</ProfileLocation>
+          <ProfileLocation id="setting-location">
+            {settings.location}
+            {settings.useGps && <GpsBadge>📍 GPS</GpsBadge>}
+          </ProfileLocation>
         </ProfileInfo>
         <ChangeBtn onClick={() => setIsLocationModalOpen(true)}>
           변경
@@ -30,6 +34,54 @@ export default function SettingsPage() {
       </ProfileCard>
 
       <NotificationSettings settings={settings} onSave={saveSetting} />
+
+      {/* 위치 설정 */}
+      <LocationSection>
+        <SectionLabel>위치 설정</SectionLabel>
+        <LocationGroup>
+          <LocationRow>
+            <RowIcon style={{ background: settings.useGps ? 'rgba(123, 110, 232, 0.12)' : '#EDE9FF' }}>
+              <Navigation size={18} color="#7B6EE8" />
+            </RowIcon>
+            <RowText>
+              <RowTitle>GPS 위치 자동 업데이트</RowTitle>
+              <RowSub>접속 시 현재 위치로 자동 변경합니다</RowSub>
+            </RowText>
+            <SwitchWrap>
+              <input 
+                type="checkbox" 
+                id="toggle-gps-mode" 
+                aria-label="GPS 자동 업데이트 토글"
+                checked={settings.useGps} 
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  if (checked) {
+                    if (navigator.geolocation) {
+                      navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                          const { latitude, longitude } = position.coords;
+                          const closest = findClosestLocation(latitude, longitude);
+                          saveSetting('location', closest);
+                          saveSetting('useGps', true);
+                        },
+                        (error) => {
+                          console.warn(error);
+                          alert('GPS 위치 권한이 거부되었거나 위치 정보를 가져올 수 없습니다. 브라우저의 설정에서 위치 권한을 확인해주세요.');
+                        }
+                      );
+                    } else {
+                      alert('GPS 기능을 지원하지 않는 브라우저입니다.');
+                    }
+                  } else {
+                    saveSetting('useGps', false);
+                  }
+                }} 
+              />
+              <SwitchLabel htmlFor="toggle-gps-mode" />
+            </SwitchWrap>
+          </LocationRow>
+        </LocationGroup>
+      </LocationSection>
 
       {/* 화면 테마 */}
       <ThemeSection>
@@ -87,7 +139,10 @@ export default function SettingsPage() {
       <LocationSelectModal
         isOpen={isLocationModalOpen}
         onClose={() => setIsLocationModalOpen(false)}
-        onSelect={val => saveSetting('location', val)}
+        onSelect={(val, useGps = false) => {
+          saveSetting('location', val);
+          saveSetting('useGps', useGps);
+        }}
         currentLocation={settings.location}
       />
     </View>
@@ -286,4 +341,38 @@ const SwitchLabel = styled.label`
   input:checked + &::before {
     transform: translateX(22px);
   }
+`;
+
+const GpsBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.40);
+  padding: 2px 8px;
+  border-radius: 8px;
+  margin-left: 8px;
+  vertical-align: middle;
+`;
+
+const LocationSection = styled.div`
+  padding: 0 16px;
+  margin-bottom: 14px;
+`;
+
+const LocationGroup = styled.div`
+  background: var(--surface);
+  backdrop-filter: blur(16px);
+  border: 1.5px solid var(--surface-border);
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+`;
+
+const LocationRow = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 16px 18px;
+  gap: 14px;
 `;

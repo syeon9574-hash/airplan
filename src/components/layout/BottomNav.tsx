@@ -50,7 +50,7 @@ const Nav = styled.nav`
   transform: translateX(-50%);
   width: 100%;
   max-width: 430px;
-  height: var(--nav-h);
+  height: calc(var(--nav-h) + env(safe-area-inset-bottom));
   background: var(--surface);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);

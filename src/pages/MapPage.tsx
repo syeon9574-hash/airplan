@@ -22,5 +22,5 @@ const View = styled.section`
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding-bottom: calc(var(--nav-h) + 12px);
+  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 12px);
 `;

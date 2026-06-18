@@ -6,7 +6,7 @@ export const CORS_PROXY = 'https://corsproxy.io/?url=';
 // 실시간 측정 API
 export const REALTIME_URL = `${BASE}/ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty`;
 // 경보 발령 현황 API
-export const ALARM_URL = `${BASE}/UlfptcaAlarmInqireSvc/getUlfptcaAlarmOccrrncInfoInqire`;
+export const ALARM_URL = `${BASE}/UlfptcaAlarmInqireSvc/getUlfptcaAlarmInfo`;
 // 시도별 실시간 측정 API
 export const SIDO_URL = `${BASE}/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty`;
 

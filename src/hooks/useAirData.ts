@@ -2,6 +2,7 @@ import { useCallback, useRef } from 'react';
 import { useAppContext } from '../store/appContext';
 import { API_KEY, REALTIME_URL, ALARM_URL, CORS_PROXY, DEFAULT_STATION, SIDO_URL } from '../constants/api';
 import { FALLBACK, FALLBACK_ALARMS } from '../constants/regionData';
+import type { Alarm } from '../types';
 
 // ── 글로벌 시도 데이터 캐시 ──────────────────
 export const sidoCache: Record<string, { data: any[]; timestamp: number }> = {};
@@ -22,7 +23,12 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeout 
 
 // ── API 호출 헬퍼 (CORS Proxy fallback) ──────
 async function apiGet(url: string, params: Record<string, string | number>) {
-  const qs = new URLSearchParams({ serviceKey: API_KEY, _type: 'json', ...Object.fromEntries(Object.entries(params).map(([k, v]) => [k, String(v)])) });
+  const qs = new URLSearchParams({
+    serviceKey: API_KEY,
+    _type: 'json',
+    returnType: 'json',
+    ...Object.fromEntries(Object.entries(params).map(([k, v]) => [k, String(v)]))
+  });
   const direct = `${url}?${qs}`;
   const proxied = `${CORS_PROXY}${encodeURIComponent(direct)}`;
 
@@ -85,10 +91,23 @@ export function useAirData() {
 
   const fetchAlarms = useCallback(async () => {
     try {
-      const data = await apiGet(ALARM_URL, { numOfRows: 20, pageNo: 1 });
-      const items = data?.response?.body?.items?.item;
+      const currentYear = new Date().getFullYear();
+      const data = await apiGet(ALARM_URL, { numOfRows: 20, pageNo: 1, year: currentYear });
+      const items = data?.response?.body?.items || data?.response?.body?.items?.item;
       if (!items) throw new Error('no alarm data');
-      const alarms = Array.isArray(items) ? items : [items];
+      const rawAlarms = Array.isArray(items) ? items : [items];
+      
+      const alarms: Alarm[] = rawAlarms.map((item: any) => ({
+        issueDate: item.issueDate || '',
+        issueTime: item.issueTime || '',
+        area: item.districtName || item.area || '전국',
+        moveName: item.moveName || '',
+        issueGbn: item.issueGbn || '주의보',
+        pollutant: item.itemCode === 'PM10' ? '미세먼지(PM10)' : (item.itemCode === 'PM25' ? '초미세먼지(PM2.5)' : item.itemCode),
+        itemCode: item.itemCode || '',
+        clearYn: ((item.clearDate || item.clearTime || item.clearYn === 'Y') ? 'Y' : 'N') as 'Y' | 'N',
+      }));
+
       setAppState(prev => ({ ...prev, alarms }));
     } catch (e) {
       console.warn('[API] 경보 조회 실패, 더미 사용:', e);

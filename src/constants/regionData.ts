@@ -40,24 +40,46 @@ export const FORECAST_DUMMY: ForecastItem[] = [
   { time: '24시', pm25: 15 },
 ];
 
+// ── 날짜 헬퍼 함수 ───────────────────────────
+const getTodayString = (daysAgo = 0) => {
+  const d = new Date();
+  if (daysAgo > 0) {
+    d.setDate(d.getDate() - daysAgo);
+  }
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
+
+const getCurrentHourString = () => {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd} ${hh}:00`;
+};
+
 // ── 폴백 더미 데이터 ─────────────────────────
 export const FALLBACK = {
   pm25: 28,
   pm10: 45,
   o3: 0.042,
   no2: 0.028,
-  dataTime: '데이터 없음 (더미)',
+  dataTime: getCurrentHourString(),
 };
 
 export const FALLBACK_ALARMS = [
   {
-    issueDate: '2026-06-15', issueTime: '10:30',
+    issueDate: getTodayString(0), issueTime: '10:30',
     area: '서울', issueGbn: '주의보',
     pollutant: '미세먼지(PM2.5)', causeType: '', clearYn: 'N' as const,
   },
   {
-    issueDate: '2026-06-15', issueTime: '08:00',
+    issueDate: getTodayString(0), issueTime: '08:00',
     area: '경기', issueGbn: '경보',
     pollutant: '초미세먼지(PM10)', causeType: '', clearYn: 'N' as const,
   },
 ];
+

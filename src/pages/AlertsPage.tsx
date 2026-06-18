@@ -1,12 +1,19 @@
+import { useEffect } from 'react';
 import styled from 'styled-components';
 import { Bell } from 'lucide-react';
 import { useAppContext } from '../store/appContext';
+import { useAirData } from '../hooks/useAirData';
 import AppHeader from '../components/layout/AppHeader';
 import AlertList from '../components/alerts/AlertList';
 
 export default function AlertsPage() {
   const { appState } = useAppContext();
+  const { fetchAlarms } = useAirData();
   const unreadCount = appState.alarms.filter(a => a.clearYn === 'N').length;
+
+  useEffect(() => {
+    fetchAlarms();
+  }, [fetchAlarms]);
 
   const triggerPushTest = async () => {
     if (!('Notification' in window)) {

@@ -92,21 +92,33 @@ export function useAirData() {
   const fetchAlarms = useCallback(async () => {
     try {
       const currentYear = new Date().getFullYear();
-      const data = await apiGet(ALARM_URL, { numOfRows: 20, pageNo: 1, year: currentYear });
+      const data = await apiGet(ALARM_URL, { numOfRows: 300, pageNo: 1, year: currentYear });
       const items = data?.response?.body?.items || data?.response?.body?.items?.item;
       if (!items) throw new Error('no alarm data');
       const rawAlarms = Array.isArray(items) ? items : [items];
       
-      const alarms: Alarm[] = rawAlarms.map((item: any) => ({
-        issueDate: item.issueDate || '',
-        issueTime: item.issueTime || '',
-        area: item.districtName || item.area || '전국',
-        moveName: item.moveName || '',
-        issueGbn: item.issueGbn || '주의보',
-        pollutant: item.itemCode === 'PM10' ? '미세먼지(PM10)' : (item.itemCode === 'PM25' ? '초미세먼지(PM2.5)' : item.itemCode),
-        itemCode: item.itemCode || '',
-        clearYn: ((item.clearDate || item.clearTime || item.clearYn === 'Y') ? 'Y' : 'N') as 'Y' | 'N',
-      }));
+      // Sort descending (newest first) by issueDate + issueTime
+      const sortedRawAlarms = [...rawAlarms].sort((a: any, b: any) => {
+        const dateA = `${a.issueDate || ''} ${a.issueTime || ''}`;
+        const dateB = `${b.issueDate || ''} ${b.issueTime || ''}`;
+        return dateB.localeCompare(dateA);
+      });
+
+      const alarms: Alarm[] = sortedRawAlarms.map((item: any) => {
+        const areaName = item.districtName && item.moveName 
+          ? `${item.districtName} (${item.moveName})` 
+          : (item.districtName || item.area || '전국');
+        return {
+          issueDate: item.issueDate || '',
+          issueTime: item.issueTime || '',
+          area: areaName,
+          moveName: item.moveName || '',
+          issueGbn: item.issueGbn || '주의보',
+          pollutant: item.itemCode === 'PM10' ? '미세먼지(PM10)' : (item.itemCode === 'PM25' ? '초미세먼지(PM2.5)' : item.itemCode),
+          itemCode: item.itemCode || '',
+          clearYn: ((item.clearDate || item.clearTime || item.clearYn === 'Y') ? 'Y' : 'N') as 'Y' | 'N',
+        };
+      });
 
       setAppState(prev => ({ ...prev, alarms }));
     } catch (e) {
